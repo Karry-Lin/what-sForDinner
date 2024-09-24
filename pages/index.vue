@@ -1,15 +1,16 @@
 <template>
   <div id="container">
-    <div id="wheel">
-      <wheel />
-    </div>
     <div id="myMap">
       <myMap />
+    </div>
+    <div id="wheel">
+      <wheel />
     </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+</script>
 
 <style scoped>
 #container {
@@ -24,6 +25,6 @@
 
 #myMap {
   flex: 1;
-  margin-left: 10px;
+  margin: 10px;
 }
 </style>

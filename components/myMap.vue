@@ -9,6 +9,7 @@
     :types="options.types"
     :enable-geolocation="true"
     :geolocation-options="options.geoOptions"
+    v-model="searchText"
   >
   </vue-google-autocomplete>
   <button @click="addFavo">加入最愛</button>
@@ -16,10 +17,18 @@
     <h3>我的最愛</h3>
     <ul>
       <li v-for="(item, index) in favoList" :key="item.placeId">
-        <p>
+        <p v-if="!item.isEditing">
+          <a :href="item.link" target="_blank">
+            <img src="../google-maps-icon.png" alt="Google Maps" style="width: 24px; height: 24px;" />
+          </a>
           {{ item.name }}
+          <button @click="item.isEditing=true">修改</button>
           <button @click="sendMessage(item.name)">加到轉盤</button>
           <button @click="removeFavo(index)">X</button>
+        </p>
+        <p v-if="item.isEditing">
+          <input v-model="item.name"/>
+          <button @click="item.isEditing=false">儲存</button>
         </p>
       </li>
     </ul>
@@ -28,18 +37,20 @@
     v-if="!isReload"
     :api-key="googleMapsApiKey"
     :libraries="['places']"
-    style="width: 100%; height: 650px"
+    style="width: 80%; height: 650px"
     :zoom="zoom"
     :center="center"
   >
     <Marker :options="{ position: center }" @click="openInfo" />
     <InfoWindow
+      v-if="infoWindowOpen"
+      @closeclick="infoWindowOpen=false"
       :options="{
         position: center,
         content: `<h3>${selectRestaurant.name}</h3>
-                                                        <p>地址:${selectRestaurant.address}</p>`,
+        <p>地址:${selectRestaurant.address}</p>
+        <a href='${selectRestaurant.link}' target='_blank'>在Google地圖上查看</a>`
       }"
-      v-if="infoWindowOpen"
     />
   </GoogleMap>
 </template>
@@ -65,11 +76,13 @@ const selectRestaurant = ref<{
   placeId: string;
   name: string;
   address: string;
+  link: string;
 }>({
   location: { lat: 0, lng: 0 },
   placeId: "",
   name: "",
   address: "",
+  link:"",
 });
 let localList;
 let favoList = ref<
@@ -78,6 +91,8 @@ let favoList = ref<
     placeId: string;
     name: string;
     address: string;
+    link: string;
+    isEditing: boolean;
   }[]
 >([]);
 onMounted(() => {
@@ -98,10 +113,14 @@ async function reload() {
 }
 function searchPlaces(info, place, id) {
   infoWindowOpen.value = false;
-  selectRestaurant.value.location = place.geometry.location;
+  selectRestaurant.value.location = {
+    lat: place.geometry.location.lat(),
+    lng: place.geometry.location.lng()
+  };
   selectRestaurant.value.placeId = place.place_id;
   selectRestaurant.value.name = place.name;
   selectRestaurant.value.address = place.formatted_address;
+  selectRestaurant.value.link = place.url;
   center.value = selectRestaurant.value.location;
 }
 let infoWindowOpen = ref(false);
@@ -109,7 +128,7 @@ function openInfo() {
   infoWindowOpen.value = true;
 }
 function addFavo() {
-  favoList.value.push({ ...selectRestaurant.value });
+  favoList.value.push({ ...selectRestaurant.value, isEditing: false});
   localStorage.setItem("restaurant", JSON.stringify(favoList.value));
 }
 function removeFavo(index) {
@@ -119,7 +138,7 @@ function removeFavo(index) {
 const { emit } = useEventBus();
 function sendMessage(name) {
   emit('message', name);
-};
+}
 </script>
 <style scoped>
 #searchTextField {
@@ -129,10 +148,10 @@ function sendMessage(name) {
   border-radius: 5px;
 }
 .title h1 {
-  margin: 0px;
+  margin: 0;
 }
 .favolist h3 {
-  margin: 0px;
+  margin: 0;
 }
 button {
   margin: 5px;
