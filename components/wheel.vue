@@ -129,6 +129,7 @@ const prizesCanvas = ref([
 const prizeId = ref<number | string>(1);
 const showWinnerModal = ref<boolean>(false);
 const output = ref<string>("");
+const currentWinnerPrize = ref<any>(null);
 
 function reindexPrizes() {
   prizesCanvas.value.forEach((prize, idx) => {
@@ -154,8 +155,9 @@ function onCanvasRotateStart(rotate?: Function) {
   }
 }
 
-function onRotateEnd(prize: { name: string }) {
-  output.value = prize.name;
+function onRotateEnd(prize: any) {
+  currentWinnerPrize.value = prize;
+  output.value = prize.name || "";
   showWinnerModal.value = true;
 }
 
@@ -201,14 +203,31 @@ const { emit, on } = useEventBus();
 
 function handleFocusMap() {
   showWinnerModal.value = false;
-  if (output.value) {
+  if (currentWinnerPrize.value) {
+    emit('focus-map', currentWinnerPrize.value);
+  } else if (output.value) {
     emit('focus-map', output.value);
   }
 }
 
 onMounted(() => {
-  on("message", (msg) => {
-    const nameStr = typeof msg === 'string' ? msg : msg?.name || '';
+  on("message", (msg: any) => {
+    let nameStr = "";
+    let itemLocation: any = undefined;
+    let itemPlaceId = "";
+    let itemAddress = "";
+    let itemLink = "";
+
+    if (typeof msg === 'string') {
+      nameStr = msg;
+    } else if (msg && typeof msg === 'object') {
+      nameStr = msg.name || '';
+      itemLocation = msg.location ? { ...msg.location } : undefined;
+      itemPlaceId = msg.placeId || '';
+      itemAddress = msg.address || '';
+      itemLink = msg.link || '';
+    }
+
     if (!nameStr) return;
 
     const exists = prizesCanvas.value.some(p => p.name === nameStr);
@@ -219,6 +238,10 @@ onMounted(() => {
         bgColor: foodColors[prizesCanvas.value.length % foodColors.length],
         color: "#ffffff",
         weight: 1,
+        location: itemLocation,
+        placeId: itemPlaceId,
+        address: itemAddress,
+        link: itemLink,
       });
       reindexPrizes();
       reload();

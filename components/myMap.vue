@@ -58,7 +58,7 @@
             </a>
             <div class="info-actions">
               <button @click="addFavo" class="btn-info-favo">加入最愛</button>
-              <button @click="sendMessage(selectRestaurant.name)" class="btn-info-wheel">加到轉盤</button>
+              <button @click="sendMessage(selectRestaurant)" class="btn-info-wheel">加到轉盤</button>
             </div>
           </div>
         </InfoWindow>
@@ -95,7 +95,7 @@
             </div>
             <div class="fav-item-actions">
               <button @click.stop="item.isEditing = true" class="btn-text-action">修改</button>
-              <button @click.stop="sendMessage(item.name)" class="btn-text-action btn-highlight">加到轉盤</button>
+              <button @click.stop="sendMessage(item)" class="btn-text-action btn-highlight">加到轉盤</button>
               <button @click.stop="removeFavo(index)" class="btn-text-action btn-del">刪除</button>
             </div>
           </div>
@@ -489,7 +489,7 @@ function addAllFavoToWheel() {
   let count = 0;
   favoList.value.forEach(item => {
     if (item.name) {
-      sendMessage(item.name);
+      sendMessage(item);
       count++;
     }
   });
@@ -504,10 +504,24 @@ function clearAllFavo() {
   }
 }
 
-function sendMessage(name: string) {
-  if (!name) return;
-  emit('message', name);
-  triggerToast(`已將「${name}」加入轉盤`);
+function sendMessage(target: any) {
+  if (!target) return;
+  let itemData: any = null;
+  if (typeof target === 'string') {
+    itemData = { name: target };
+  } else if (typeof target === 'object') {
+    itemData = {
+      name: target.name || '',
+      location: target.location ? { ...target.location } : undefined,
+      placeId: target.placeId || '',
+      address: target.address || '',
+      link: target.link || '',
+    };
+  }
+  if (!itemData || !itemData.name) return;
+
+  emit('message', itemData);
+  triggerToast(`已將「${itemData.name}」加入轉盤`);
 }
 </script>
 
