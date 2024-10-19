@@ -1,11 +1,11 @@
 <template>
-  <div id="container">
-    <div id="myMap">
+  <div class="dashboard-grid">
+    <section class="grid-section map-section">
       <myMap />
-    </div>
-    <div id="wheel">
+    </section>
+    <section class="grid-section wheel-section">
       <wheel />
-    </div>
+    </section>
   </div>
 </template>
 
@@ -13,18 +13,24 @@
 </script>
 
 <style scoped>
-#container {
-  display: flex;
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
   width: 100%;
-  height: 100%;
-}
-#wheel {
-  flex: 1;
-  margin: 10px;
 }
 
-#myMap {
-  flex: 1;
-  margin: 10px;
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 7fr 5fr;
+    align-items: start;
+  }
+}
+
+.grid-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 </style>
+

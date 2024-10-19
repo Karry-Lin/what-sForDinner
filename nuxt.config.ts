@@ -4,15 +4,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   runtimeConfig: {
     public: {
-      googleMapsApiKey: '',
+      googleMapsApiKey: process.env.NUXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     }
   },
   app: {
     head: {
       script: [
-        { src: "https://maps.googleapis.com/maps/api/js?key=&libraries=places" }
+        { src: `https://maps.googleapis.com/maps/api/js?key=${process.env.NUXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}&libraries=places` }
       ],
     }
   },
 });
-
